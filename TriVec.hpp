@@ -112,71 +112,11 @@ T TriVec<T>::kWeight(Vec3<T> x){
 		tz = 0.5*(1.5-tz)*(1.5-tz);
 	else tz = 0;
 
-	// if(tx > 1){
-	// 	tx = 0;
-	// }
-	// if(ty > 1){
-	// 	ty = 0;
-	// }
-	// if(tz > 1){
-	// 	tz = 0;
-	// }
-
 	return tx*ty*tz;
 }
 
 template <typename T>
 void TriVec<T>::interpU(){	//interpolate from particle velocities to grid
-	// float val = *((float*)value);
-			
-	// cw  = oneminustween.x  oneminustween.y  oneminustween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[0])->val += val * fac;
-	// cells[0]->weight += fac;
-	// cells[0]->cw     += cw;
-
-	// cw  = tween.x   oneminustween.y  oneminustween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[1])->val += val * fac;
-	// cells[1]->weight += fac;
-	// cells[1]->cw     += cw;
-
-	
-	// cw  = oneminustween.x  tween.y  oneminustween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[2])->val += val * fac;
-	// cells[2]->weight += fac;
-	// cells[2]->cw     += cw;
-
-	// cw  = tween.x  tween.y  oneminustween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[3])->val += val * fac;
-	// cells[3]->weight += fac;
-	// cells[3]->cw     += cw;
-
-	// cw  = oneminustween.x  oneminustween.y  tween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[4])->val += val * fac;
-	// cells[4]->weight += fac;
-	// cells[4]->cw     += cw;
-
-	// cw  = tween.x  oneminustween.y  tween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[5])->val += val * fac;
-	// cells[5]->weight += fac;
-	// cells[5]->cw     += cw;
-
-	// cw  = oneminustween.x  tween.y  tween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[6])->val += val * fac;
-	// cells[6]->weight += fac;
-	// cells[6]->cw     += cw;
-
-	// cw  = tween.x  tween.y  tween.z;
-	// fac = weight * cw;
-	// ((TP_ScalarGridCell*)cells[7])->val += val * fac;
-	// cells[7]->weight += fac;
-	// cells[7]->cw     += cw;
 	for(int l = 0; l < size; ++l){
 		if(a[l].t != SOLID){
 			int k = l/(x*y), j = (l%(x*y))/x, i = (l%(x*y))%x;
@@ -186,9 +126,9 @@ void TriVec<T>::interpU(){	//interpolate from particle velocities to grid
 			for(int p = 0; p < a[l].numParticles; p++){
 				a[l].particles[p].vOld = a[l].particles[p].v;
 			}
-			for(int ioff = -2; ioff <= 2; ioff++){ //loop on x-1, x, x+1 cells
-				for(int joff = -2; joff <= 2; joff++){	//loop on y-1, y, and y+1 cells
-					for(int koff = -2; koff <= 2; koff++){	//loop on z-1, z, and z+1 cells
+			for(int ioff = -1; ioff < 2; ioff++){ //loop on x-1, x, x+1 cells
+				for(int joff = -1; joff < 2; joff++){	//loop on y-1, y, and y+1 cells
+					for(int koff = -1; koff < 2; koff++){	//loop on z-1, z, and z+1 cells
 							for(int p = 0; p < get(i+ioff, j+joff, k+koff).numParticles; p++){	//for each particle in cell
 								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosx);
 								sumk.x += t;
@@ -239,26 +179,12 @@ T linterp(T a, T p0, T p1){
 
 template <typename T>
 T trilinterp(T aX, T aY, T aZ, T p000, T p001,  T p010, T p011, T p100, T p101, T p110, T p111){
-	// printf("%f %f %f\n", aX, aY, aZ);
-	T p00 = linterp(aX, p000, p001), p01 = linterp(aX, p010, p011), p10 = linterp(aX, p100, p101), p11 = linterp(aX, p110, p111);
-	T p0 = linterp(aY, p00, p01), p1 = linterp(aY, p10, p11);
-	return linterp(aZ, p0, p1);
-	// return bilinterp(aY, aZ, linterp(aX, p000, p001), linterp(aX, p010, p011), linterp(aX, p100, p101), linterp(aX, p110, p111));
+	return linterp(aZ, linterp(aY, linterp(aX, p000, p001), linterp(aX, p010, p011)), linterp(aY, linterp(aX, p100, p101), linterp(aX, p110, p111)));
 }
-
-// template <typename T>
-// Vec3<T> trilinterpNew(T aX, T aY, T aZ, Voxel<T> v000, Voxel<T> v001, Voxel<T> v010, Voxel<T> v011, Voxel<T> v100, Voxel<T> v101, Voxel<T> v110, Voxel<T> v111){
-// 	T rX = 1.0-aX, rY = 1.0 - aY, rZ = 1.0 - aZ;
-
-// }
 
 #define ALPHA 0.97										//defines amount of FLIP to use, 1 is all FLIP, 0 is no FLIP
 template <typename T>
 void TriVec<T>::interpUtoP(Particle<T>& in){		//interpolate surrounding grid velocities to particles
-	// weight = (((oneMinusTween.x  ((c[0]) ? c[0]->weight : 0.0f) + tween.x  ((c[1]) ? c[1]->weight : 0.0f)) * oneMinusTween.y
-	// 		+ (oneMinusTween.x  ((c[2]) ? c[2]->weight : 0.0f) + tween.x  ((c[3]) ? c[3]->weight : 0.0f))  tween.y)  oneMinusTween.z
-	// 		+ ((oneMinusTween.x  ((c[4]) ? c[4]->weight : 0.0f) + tween.x  ((c[5]) ? c[5]->weight : 0.0f)) * oneMinusTween.y
-	// 		+ (oneMinusTween.x  ((c[6]) ? c[6]->weight : 0.0f) + tween.x  ((c[7]) ? c[7]->weight : 0.0f))  tween.y)  tween.z);
 
 	Vec3<T> newU, oldU;
 	int tx = in.p.x/dx, ty = in.p.y/dx, tz = in.p.z/dx;		//get xyz of particle's voxel
@@ -268,14 +194,11 @@ void TriVec<T>::interpUtoP(Particle<T>& in){		//interpolate surrounding grid vel
 	if(in.p.z - tz*dx < dx/2){
 		--tz;
 	}
-
 	//trilinear interp of velocities of 8 cells whose x-velocities surround particle, and position scale for the linterps
 	//x scale is distance from particle to negative x face of containing voxel
 	//y scale is distance from particle to y component of midpoint of "left" voxel
 	//z scale is distance from particle to z component of midpoint of "left" voxel
-	
-	// printf("%d %d %d: %f %f %f | %f %f %f\n", tx, ty, tz, in.p.x, in.p.y, in.p.z, (in.p.x - tx*dx) / dx, (in.p.y - (ty*dx + dx/2))/dx, (in.p.z - (tz*dx + dx/2))/dx);
-	
+		
 	newU.x = trilinterp((in.p.x - tx*dx) / dx, (in.p.y - (ty*dx + dx/2))/dx, (in.p.z - (tz*dx + dx/2))/dx, get(tx-1, ty, tz).u.x, get(tx, ty, tz).u.x, get(tx-1, ty+1, tz).u.x, get(tx, ty+1, tz).u.x, get(tx-1, ty, tz+1).u.x, get(tx, ty, tz+1).u.x, get(tx-1, ty+1, tz+1).u.x, get(tx, ty+1, tz+1).u.x);
 	oldU.x = trilinterp((in.p.x - tx*dx) / dx, (in.p.y - (ty*dx + dx/2))/dx, (in.p.z - (tz*dx + dx/2))/dx, get(tx-1, ty, tz).uOld.x, get(tx, ty, tz).uOld.x, get(tx-1, ty+1, tz).uOld.x, get(tx, ty+1, tz).uOld.x, get(tx-1, ty, tz+1).uOld.x, get(tx, ty, tz+1).uOld.x, get(tx-1, ty+1, tz+1).uOld.x, get(tx, ty+1, tz+1).uOld.x);
 	
@@ -286,6 +209,7 @@ void TriVec<T>::interpUtoP(Particle<T>& in){		//interpolate surrounding grid vel
 	if(in.p.z - tz*dx < dx/2){
 		--tz;
 	}
+
 	newU.y = trilinterp((in.p.x - (tx*dx + dx/2))/dx, (in.p.y - ty*dx)/dx, (in.p.z - (tz*dx + dx/2))/dx, get(tx, ty-1, tz).u.y, get(tx+1, ty-1, tz).u.y, get(tx, ty, tz).u.y, get(tx+1, ty, tz).u.y, get(tx, ty-1, tz+1).u.y, get(tx+1, ty-1, tz+1).u.y, get(tx, ty, tz+1).u.y, get(tx+1, ty, tz+1).u.y);
 	oldU.y = trilinterp((in.p.x - (tx*dx + dx/2))/dx, (in.p.y - ty*dx)/dx, (in.p.z - (tz*dx + dx/2))/dx, get(tx, ty-1, tz).uOld.y, get(tx+1, ty-1, tz).uOld.y, get(tx, ty, tz).uOld.y, get(tx+1, ty, tz).uOld.y, get(tx, ty-1, tz+1).uOld.y, get(tx+1, ty-1, tz+1).uOld.y, get(tx, ty, tz+1).uOld.y, get(tx+1, ty, tz+1).uOld.y);
 
@@ -372,24 +296,25 @@ T TriVec<T>::divergenceU(int x, int y, int z){		//calc right hand side, modified
 template <typename T>
 void TriVec<T>::updateU(){		//update U of fluid cells with pressure difference between it and it's positive neighbour (u,v,w on positive face of voxel)
 	int offset = 1;
+	T scale = dt / (dx*density);
 	for(int i = 0; i < size; i += offset){
-		if(a[i].t == FLUID){
+		if(a[i].t != SOLID){
 			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
 			T dpx, dpy, dpz;
-			if(get(tx+1, ty, tz).t == FLUID)
+			if(get(tx+1, ty, tz).t != SOLID)
 				dpx = get(tx+1, ty, tz).p - get(tx, ty, tz).p;
 			else dpx = 0;
 
-			if(get(tx, ty+1, tz).t == FLUID)
+			if(get(tx, ty+1, tz).t != SOLID)
 				dpy = get(tx, ty+1, tz).p - get(tx, ty, tz).p;
 			else dpy = 0;
 
-			if(get(tx, ty, tz+1).t == FLUID)
+			if(get(tx, ty, tz+1).t != SOLID)
 				dpz = get(tx, ty, tz+1).p - get(tx, ty, tz).p;
 			else dpz = 0;
 
 			Vec3<T> t(dpx, dpy, dpz);	//calculate pressure diffs in x,y,z
-			t = t*dt/dx/density;	
+			t = t*scale;	
 			a[i].u = a[i].u - t;																				//subtract pressure-derived term per equation 43
 		}
 	}
@@ -433,22 +358,6 @@ void TriVec<T>::advectParticles(){													//advect particles!
 			a[i].t = EMPTY;
 	}			
 }
-
-
-// template <typename T>
-// void TriVec<T>::fillGaps(){
-// 	for(int i = 0; i < size; ++i){
-// 		if(a[i].t == FLUID){
-// 			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;		
-// 			for(; a[i].numParticles < 8; a[i].numParticles++){
-// 				a[i].particles[a[i].numParticles].p.x = dx*tx + dx*(double)rand()/RAND_MAX;
-// 				a[i].particles[a[i].numParticles].p.y = dx*ty + dx*(double)rand()/RAND_MAX;
-// 				a[i].particles[a[i].numParticles].p.z = dx*tz + dx*(double)rand()/RAND_MAX;
-// 				interpUtoP(a[i].particles[a[i].numParticles]);
-// 			}
-// 		}
-// 	}
-// }
 
 template <typename T>
 Vec3<T> TriVec<T>::negA(int x, int y, int z){

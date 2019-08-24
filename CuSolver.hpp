@@ -79,7 +79,7 @@ bool CuSolver<T>::advect() {
 			targetGrid->a.maxU();
 			targetGrid->a.dx = sourceGrid->dx;              //copy dx (not copied in voxel copy copyFrom)
 			// targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = sourceGrid->dx / (sourceGrid->a.mU + sqrt(2*9.8*targetGrid->dx)); //set dt for subframe
-			targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = delT/20.0;
+			targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = delT/4.0;
 			if(targetGrid->dt + tElapsed > delT)            //correct subframe if overshooting frame duration
 				targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = delT-tElapsed;
 			targetGrid->a.density = sourceGrid->density;    //copy density (not copied in copyFrom)
