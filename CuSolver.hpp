@@ -21,10 +21,14 @@ CuSolver<T>::CuSolver(int x, int y, int z, int frames, double dx, double t) {
 template <typename T>
 CuSolver<T>::~CuSolver() {
 	for(int i = 0; i < frames; i++){
-		if(sourceGrid != nullptr)
+		if(sourceGrid != nullptr){
 			delete sourceGrid;
-		if(targetGrid != nullptr)
+			sourceGrid = nullptr;
+		}
+		if(targetGrid != nullptr){
 			delete targetGrid;
+			targetGrid = nullptr;
+		}
 	}
 }
 
@@ -37,7 +41,8 @@ void CuSolver<T>::testInit(){
 				// if(i == 0 || i == x-1 || j == 0 || j == y-1 || k == 0 || k == z-1){
 				// 	t->t = SOLID;
 				// }
-				// else if(i < 5*x/8 && i > 3*x/8 && j < 5*y/8 && j > 3*y/8)
+				// // else if(i < 5*x/8 && i > 3*x/8 && j < 5*y/8 && j > 3*y/8)
+				// else
 				if(j < 5*y/8 && j > 3*y/8)
 					t->t = FLUID;
 				else{

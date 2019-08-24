@@ -34,8 +34,10 @@ TriVec<T>::TriVec(unsigned long long x, unsigned long long y, unsigned long long
 
 template <typename T>
 TriVec<T>::~TriVec() {
-	if(a != nullptr)
+	if(a != nullptr){
 		delete[] a;
+		a = nullptr;
+	}
 }
 
 template <typename T>
@@ -161,14 +163,8 @@ void TriVec<T>::interpU(){	//interpolate from particle velocities to grid
 			a[l].u = sumuk;
 		
 		}
-		// else a[l].u = Vec3<T>();
 		a[l].uOld = a[l].u;
 	}
-	// for(int l = 0; l < size; l++){
-	// 	if(a[l].t == EMPTY){
-
-	// 	}
-	// }
 }
 
 template <typename T>
@@ -226,7 +222,7 @@ void TriVec<T>::interpUtoP(Particle<T>& in){		//interpolate surrounding grid vel
 
 	// printf("old %d %d %d: %f %f %f\n", tx, ty, tz, in.v.x, in.v.y, in.v.z);
 	// printf("flip %f %f %f | old %f %f %f | new %f %f %f\n", in.vOld.x + (newU.x - oldU.x), in.vOld.y + (newU.y - oldU.y), in.vOld.z + (newU.z - oldU.z), oldU.x, oldU.y, oldU.z, newU.x, newU.y, newU.z);
-	in.v = (1-ALPHA)*newU + ALPHA*(in.vOld + (newU - oldU));
+	in.v = (1-ALPHA)*newU + ALPHA*(in.v + (newU - oldU));
 	
 	// if(in.v.z == 0){
 	// 	tx = in.p.x/dx, ty = in.p.y/dx, tz = in.p.z/dx;
@@ -325,7 +321,16 @@ void TriVec<T>::advectParticles(){													//advect particles!
 	for(int i = 0; i < size; i += offset){									//loop through each block, should change this to search for fluid so each thread hits at least one fluid
 		if(a[i].t == FLUID){
 			for(int p = 0; p < a[i].numParticles; p++){															//for each particle in fluid voxel
-				a[i].particles[p].p += a[i].particles[p].v * dt;												//update position by dt*v
+				// a[i].particles[p].p += a[i].particles[p].v * dt;												//update position by dt*v
+
+				//Bridson's Interpretation of Ralston's advection:
+				Particle<T> k2 = a[i].particles[p], k3;
+				k2.p += k2.v*(dt/2.0);
+				interpUtoP(k2);
+				k3 = k2;
+				k3.p += k3.v*dt*(3.0/4.0);
+				interpUtoP(k3);
+				a[i].particles[p].p += a[i].particles[p].v*dt*(2.0/9.0) + k2.v*dt*(3.0/9.0) + k3.v*dt*(4.0/9.0);
 			}
 		}
 	}
