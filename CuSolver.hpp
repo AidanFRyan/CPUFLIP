@@ -34,11 +34,11 @@ void CuSolver<T>::testInit(){
 		for(int j = 0; j < y; j++){
 			for(int i = 0; i < x; i++){
 				Voxel<T>* t = &sourceGrid->a.get(i, j, k);
-				if(i == 0 || i == x-1 || j == 0 || j == y-1 || k == 0 || k == z-1){
-					t->t = SOLID;
-				}
+				// if(i == 0 || i == x-1 || j == 0 || j == y-1 || k == 0 || k == z-1){
+				// 	t->t = SOLID;
+				// }
 				// else if(i < 5*x/8 && i > 3*x/8 && j < 5*y/8 && j > 3*y/8)
-				else if(j < 5*y/8 && j > 3*y/8)
+				if(j < 5*y/8 && j > 3*y/8)
 					t->t = FLUID;
 				else{
 					t->t = EMPTY;
@@ -75,6 +75,7 @@ bool CuSolver<T>::advect() {
                 targetGrid->a.a[i].pold = 0;
                 targetGrid->a.a[i].u = Vec3<T>();
                 targetGrid->a.a[i].uOld = Vec3<T>();
+				targetGrid->a.pureFluidList.clear();
 			}
 			targetGrid->a.maxU();
 			targetGrid->a.dx = sourceGrid->dx;              //copy dx (not copied in voxel copy copyFrom)
@@ -152,6 +153,7 @@ bool CuSolver<T>::advect() {
 			printf("apply U\n");
 			targetGrid->a.applyU();                                             //interp particle U from voxel U
 			printf("advect particles\n");
+			targetGrid->a.findPureFluids();
 			targetGrid->a.advectParticles();                                   //move particles based on dt and velocity
 			// targetGrid->a.fillGaps();
 			tElapsed += targetGrid->dt;       

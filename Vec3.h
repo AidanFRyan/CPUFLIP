@@ -1,5 +1,9 @@
 #ifndef VEC3_H
 #define VEC3_H
+#include <iostream>
+#include <float.h>
+#include <math.h>
+#include <random>
 namespace Cu{
     template <typename T>
 	class Vec3{

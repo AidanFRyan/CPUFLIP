@@ -47,7 +47,12 @@ namespace Cu {
 		void fillGaps();
 		void interpUtoP(Particle<T>& in);
 		void multiThreadJacobi();
-		
+		void findPureFluids();
+		void reinsertToFluid(Particle<T>& in);
+
+		std::default_random_engine gen;
+		std::uniform_real_distribution<double> dist;
+		std::vector<int> pureFluidList;
 		Voxel<T>* a;
 		T dx, dt;
 		unsigned long long x, y, z, size;

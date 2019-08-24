@@ -1,7 +1,5 @@
 #include "TriVec.h"
 using namespace std;
-#include <iostream>
-#include <float.h>
 
 // using namespace Cu;
 
@@ -13,6 +11,7 @@ TriVec<T>::TriVec() {
 	invalid = Voxel<T>(true);
 	maxRes = 0;
 	density = 0;
+	dist = std::uniform_real_distribution<double>(0.0, 1.0);
 }
 
 template <typename T>
@@ -335,10 +334,17 @@ void TriVec<T>::advectParticles(){													//advect particles!
 		if(a[i].t == FLUID){
 			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;											//get xyz of voxel
 			for(int p = 0; p < a[i].numParticles; p++){														//for all particles in this voxel
-				if((int)(a[i].particles[p].p.x/dx) != tx || (int)(a[i].particles[p].p.y/dx) != ty || (int)(a[i].particles[p].p.z/dx) != tz){	//if particle is outside of this voxel
-					int nx = a[i].particles[p].p.x/dx, ny = a[i].particles[p].p.y/dx, nz = a[i].particles[p].p.z/dx;	//get voxel xyz of where particle should be
-					if(get(nx, ny, nz).t == SOLID)															//if this voxel is solid, reverse particle direction (need to implement LSG to project it out)
-						a[i].particles[p].p = a[i].particles[p].p - dt*a[i].particles[p].v;
+				if((int)floor(a[i].particles[p].p.x/dx) != tx || (int)floor(a[i].particles[p].p.y/dx) != ty || (int)floor(a[i].particles[p].p.z/dx) != tz){	//if particle is outside of this voxel
+					int nx = floor(a[i].particles[p].p.x/dx), ny = floor(a[i].particles[p].p.y/dx), nz = floor(a[i].particles[p].p.z/dx);	//get voxel xyz of where particle should be
+					if(get(nx, ny, nz).t == SOLID){															//if this voxel is solid, reverse particle direction (need to implement LSG to project it out)
+						// a[i].particles[p].p = a[i].particles[p].p - dt*a[i].particles[p].v;
+						reinsertToFluid(a[i].particles[p]);
+						--a[i].numParticles;
+						for(int l = p; l < a[i].numParticles; l++){
+							a[i].particles[l] = a[i].particles[l+1];
+						}
+						a[i].particles.pop_back();
+					}
 					else{
 						if(get(nx, ny, nz).t == EMPTY)													//if voxel is empty make it a fluid
 							get(nx, ny, nz).t = FLUID;
@@ -357,6 +363,38 @@ void TriVec<T>::advectParticles(){													//advect particles!
 		if(a[i].numParticles == 0)																		//if current voxel has no particles (must have been a fluid at start) then set voxel to empty
 			a[i].t = EMPTY;
 	}			
+}
+
+template <typename T>
+void TriVec<T>::findPureFluids(){
+	for(int i = 0; i < size; ++i){
+		if(a[i].t == FLUID){
+			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
+			if(get(tx+1, ty, tz).t == FLUID && get(tx-1, ty, tz).t == FLUID)
+				if(get(tx, ty+1, tz).t == FLUID && get(tx, ty-1, tz).t == FLUID)
+					if(get(tx, ty, tz+1).t == FLUID && get(tx, ty, tz-1).t == FLUID)
+						pureFluidList.push_back(i);
+		}
+	}
+	if(!pureFluidList.size()){
+		for(int i = 0; i < size; ++i){
+			if(a[i].t == FLUID){
+				pureFluidList.push_back(i);
+			}
+		}
+	}
+}
+
+template <typename T>
+void TriVec<T>::reinsertToFluid(Particle<T>& in){
+	int i = pureFluidList[dist(gen)*pureFluidList.size()];
+	int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
+	in.p.x = tx+dist(gen)*dx;
+	in.p.y = ty+dist(gen)*dx;
+	in.p.z = tz+dist(gen)*dx;
+	interpUtoP(in);	
+	a[i].particles.push_back(in);
+	++a[i].numParticles;
 }
 
 template <typename T>
