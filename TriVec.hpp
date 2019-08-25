@@ -84,7 +84,7 @@ Voxel<T>& TriVec<T>::get(int x, int y, int z){
 }
 
 template <typename T>
- Vec3<T> TriVec<T>::backsolveU(float x, float y, float z, float dt){	//Remnant from long ago
+ Vec3<T> TriVec<T>::backsolveU(T x, T y, T z, T dt){	//Remnant from long ago
 	Vec3<T> t = get(x, y, z).u;
 	t = interpU(x+0.5f*dt*t.x, y+0.5f*dt*t.y, z+0.5f*dt*t.z);
 	return t;
@@ -294,17 +294,21 @@ void TriVec<T>::updateU(){		//update U of fluid cells with pressure difference b
 	T scale = dt / (dx*density);
 	for(int i = 0; i < size; i += offset){
 		if(a[i].t != SOLID){
+		//if(a[i].t == FLUID){
 			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
 			T dpx, dpy, dpz;
 			if(get(tx+1, ty, tz).t != SOLID)
+			//if(get(tx+1, ty, tz).t == FLUID)
 				dpx = get(tx+1, ty, tz).p - get(tx, ty, tz).p;
 			else dpx = 0;
 
 			if(get(tx, ty+1, tz).t != SOLID)
+			//if (get(tx, ty+1, tz).t == FLUID)
 				dpy = get(tx, ty+1, tz).p - get(tx, ty, tz).p;
 			else dpy = 0;
 
 			if(get(tx, ty, tz+1).t != SOLID)
+			//if (get(tx, ty, tz+1).t == FLUID)
 				dpz = get(tx, ty, tz+1).p - get(tx, ty, tz).p;
 			else dpz = 0;
 
@@ -336,37 +340,38 @@ void TriVec<T>::advectParticles(){													//advect particles!
 	}
 														//after updating all positions, search for particles switching voxels
 	for(int i = 0; i < size; i++){
-		if(a[i].t == FLUID){
-			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;											//get xyz of voxel
-			for(int p = 0; p < a[i].numParticles; p++){														//for all particles in this voxel
-				if((int)floor(a[i].particles[p].p.x/dx) != tx || (int)floor(a[i].particles[p].p.y/dx) != ty || (int)floor(a[i].particles[p].p.z/dx) != tz){	//if particle is outside of this voxel
-					int nx = floor(a[i].particles[p].p.x/dx), ny = floor(a[i].particles[p].p.y/dx), nz = floor(a[i].particles[p].p.z/dx);	//get voxel xyz of where particle should be
-					if(get(nx, ny, nz).t == SOLID){															//if this voxel is solid, reverse particle direction (need to implement LSG to project it out)
+		if (a[i].t == FLUID) {
+			int tz = i / (x*y), ty = (i % (x*y)) / x, tx = (i % (x*y)) % x;											//get xyz of voxel
+			for (int p = 0; p < a[i].numParticles; p++) {														//for all particles in this voxel
+				if ((int)floor(a[i].particles[p].p.x / dx) != tx || (int)floor(a[i].particles[p].p.y / dx) != ty || (int)floor(a[i].particles[p].p.z / dx) != tz) {	//if particle is outside of this voxel
+					int nx = floor(a[i].particles[p].p.x / dx), ny = floor(a[i].particles[p].p.y / dx), nz = floor(a[i].particles[p].p.z / dx);	//get voxel xyz of where particle should be
+					if (get(nx, ny, nz).t == SOLID) {															//if this voxel is solid, reverse particle direction (need to implement LSG to project it out)
 						// a[i].particles[p].p = a[i].particles[p].p - dt*a[i].particles[p].v;
 						reinsertToFluid(a[i].particles[p]);
 						--a[i].numParticles;
-						for(int l = p; l < a[i].numParticles; l++){
-							a[i].particles[l] = a[i].particles[l+1];
+						for (int l = p; l < a[i].numParticles; l++) {
+							a[i].particles[l] = a[i].particles[l + 1];
 						}
 						a[i].particles.pop_back();
 					}
-					else{
-						if(get(nx, ny, nz).t == EMPTY)													//if voxel is empty make it a fluid
+					else {
+						if (get(nx, ny, nz).t == EMPTY)													//if voxel is empty make it a fluid
 							get(nx, ny, nz).t = FLUID;
 						get(nx, ny, nz).particles.push_back(a[i].particles[p]);
 						++get(nx, ny, nz).numParticles;
-					
+
 						--a[i].numParticles;																//if there isn't space, still remove the particle from this voxel
-						for(int l = p; l < a[i].numParticles; l++){
-							a[i].particles[l] = a[i].particles[l+1];										//and shift the remaining particles back in the "stack"
+						for (int l = p; l < a[i].numParticles; l++) {
+							a[i].particles[l] = a[i].particles[l + 1];										//and shift the remaining particles back in the "stack"
 						}
 						a[i].particles.pop_back();
 					}
 				}
 			}
+
+			if (a[i].numParticles == 0)																		//if current voxel has no particles (must have been a fluid at start) then set voxel to empty
+				a[i].t = EMPTY;
 		}
-		if(a[i].numParticles == 0)																		//if current voxel has no particles (must have been a fluid at start) then set voxel to empty
-			a[i].t = EMPTY;
 	}			
 }
 

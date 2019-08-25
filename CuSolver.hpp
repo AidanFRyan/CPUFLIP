@@ -37,10 +37,11 @@ void CuSolver<T>::testInit(){
 			for(int i = 0; i < x; i++){
 				Voxel<T>* t = &sourceGrid->a.get(i, j, k);
 				// if(i == 0 || i == x-1 || j == 0 || j == y-1 || k == 0 || k == z-1){
-				// 	t->t = SOLID;
-				// }
+				if (i < 5 * x / 8 && i > 3 * x / 8){// && j < 5 * y / 8 && j > 3 * y / 8){
+					t->t = SOLID;
+				}
 				// // else if(i < 5*x/8 && i > 3*x/8 && j < 5*y/8 && j > 3*y/8)
-				// else
+				else
 				if(j < 5*y/8 && j > 3*y/8)
 					t->t = FLUID;
 				else{

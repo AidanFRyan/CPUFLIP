@@ -21,11 +21,11 @@ namespace Cu{
 	template <typename T>
 	Vec3<T> operator-(const Vec3<T>& in1, const Vec3<T>& in2);
 	template <typename T>
-	Vec3<T> operator*(const float& in1, const Vec3<T>& in2);
+	Vec3<T> operator*(const T& in1, const Vec3<T>& in2);
 	template <typename T>
-	Vec3<T> operator*(const Vec3<T>& in1, const float& in2);
+	Vec3<T> operator*(const Vec3<T>& in1, const T& in2);
 	template <typename T>
-	Vec3<T> operator/(const Vec3<T>& in1, const float& in2);
+	Vec3<T> operator/(const Vec3<T>& in1, const T& in2);
     
     #include "Vec3.hpp"
 }

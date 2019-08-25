@@ -20,7 +20,7 @@ namespace Cu {
 		T udx(int x, int y, int z);
 		T udy(int x, int y, int z);
 		T udz(int x, int y, int z);
-		Vec3<T> backsolveU(float x, float y, float z, float dt);
+		Vec3<T> backsolveU(T x, T y, T z, T dt);
 		void interpU();
 		Vec3<T> laplacianU(int x, int y, int z);
 		Voxel<T>& get(int x, int y, int z);

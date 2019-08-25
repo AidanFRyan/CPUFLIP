@@ -49,18 +49,18 @@ const Vec3<T>& Vec3<T>::operator+=(const Vec3<T>& in){
 }
 
 template <typename T>
-Vec3<T> operator*(const float& in1, const Vec3<T>& in2){
+Vec3<T> operator*(const T& in1, const Vec3<T>& in2){
 	Vec3<T> t(in1*in2.x, in1*in2.y, in1*in2.z);
 	return t;
 }
 
 template <typename T>
- Vec3<T> operator*(const Vec3<T>& in1, const float& in2){
+ Vec3<T> operator*(const Vec3<T>& in1, const T& in2){
 	return in2*in1;
 }
 
 template <typename T>//int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
- Vec3<T> operator/(const Vec3<T>& in1, const float& in2){
+ Vec3<T> operator/(const Vec3<T>& in1, const T& in2){
 	Vec3<T> t(in1.x/in2, in1.y/in2, in1.z/in2);
 	return t;
 }

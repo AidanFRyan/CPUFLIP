@@ -11,7 +11,7 @@ namespace Cu{
 		Voxel(bool in);
 		Voxel(const Voxel& in);
 		const Voxel& operator=(const Voxel& in);
-		void applyBodyForces(float dt);
+		void applyBodyForces(T dt);
 		Vec3<T> u, uOld, f;	//note that f is actually acceleration vector in this version of the code
 		T p, pold, divU, res, z, s;	//pressure, divergence of u term (for pressure solver), residual, z vector quantities (negative residual in CG, preconditioned value in PCG)
 		VoxType t;

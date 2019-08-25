@@ -61,6 +61,6 @@ const Voxel<T>& Voxel<T>::operator=(const Voxel<T>& in){
 }
 
 template <typename T>
-void Voxel<T>::applyBodyForces(float dt){
+void Voxel<T>::applyBodyForces(T dt){
 	u += dt*f;						//add dt*f to voxel velocity
 }

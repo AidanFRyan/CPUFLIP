@@ -8,7 +8,7 @@ using namespace std;
 using namespace Cu;
 
 namespace Cu{
-	template <typename T>	//T should only be float or double
+	template <typename T>	//T should only be T or double
 	class CuSolver {
 	public:
 		CuSolver(int x = 0, int y = 0, int z = 0, int frames = 0, double dx = 0,  double dt = 0);
