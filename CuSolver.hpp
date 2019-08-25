@@ -1,6 +1,4 @@
 #include "CuSolver.h"
-#include <unistd.h>
-#include <cmath>
 #define NUMBLOCKS 1
 #define NUMTHREADS 1
 using namespace Cu;
