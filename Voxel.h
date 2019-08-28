@@ -16,10 +16,11 @@ namespace Cu{
 		T p, pold, divU, res, z, s;	//pressure, divergence of u term (for pressure solver), residual, z vector quantities (negative residual in CG, preconditioned value in PCG)
 		VoxType t;
 		bool invalid;
-		std::vector< Particle<T> > particles;
+		//std::vector< Particle<T> > particles;
 		// Particle<T> particles[24];
-		short numParticles;
+		//short numParticles;
 		T aDiag, aX, aY, aZ;//, dotTemp;
+		Vec3<T> sumuk, sumk;
 	};
     #include "Voxel.hpp"
 }

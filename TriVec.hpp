@@ -117,55 +117,78 @@ T TriVec<T>::kWeight(Vec3<T> x){
 }
 
 template <typename T>
-void TriVec<T>::interpU(){	//interpolate from particle velocities to grid
-	for(int l = 0; l < size; ++l){
-		if(a[l].t != SOLID){
-			int k = l/(x*y), j = (l%(x*y))/x, i = (l%(x*y))%x;
-			T offset = dx/2;
-			T t, x = i*dx + offset, y = j*dx + offset, z = k*dx + offset;
-			Vec3<T> sumk, sumuk, curPosx(x+offset, y, z), curPosy(x, y+offset, z), curPosz(x, y, z+offset);
-			for(int p = 0; p < a[l].numParticles; p++){
-				a[l].particles[p].vOld = a[l].particles[p].v;
-			}
-			for(int ioff = -1; ioff < 2; ioff++){ //loop on x-1, x, x+1 cells
-				for(int joff = -1; joff < 2; joff++){	//loop on y-1, y, and y+1 cells
-					for(int koff = -1; koff < 2; koff++){	//loop on z-1, z, and z+1 cells
-							for(int p = 0; p < get(i+ioff, j+joff, k+koff).numParticles; p++){	//for each particle in cell
-								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosx);
-								sumk.x += t;
-								sumuk.x += get(i+ioff, j+joff, k+koff).particles[p].v.x*t;
-								
-								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosy);
-								sumk.y += t;
-								sumuk.y += get(i+ioff, j+joff, k+koff).particles[p].v.y*t;
-
-								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosz);
-								sumk.z += t;
-								sumuk.z += get(i+ioff, j+joff, k+koff).particles[p].v.z*t;
-								// printf("%d %d %d | %f %f %f\n", ioff, joff, koff, p.v.x, p.v.y, p.v.z);
-							}
-					}
-				}
-			}
-			sumuk.x /= (sumk.x + 0.0000000000000001);
-			sumuk.y /= (sumk.y + 0.0000000000000001);
-			sumuk.z /= (sumk.z + 0.0000000000000001);
-			// printf("%d | %f %f %f\n", l, sumuk.x, sumuk.y, sumuk.z);
-			if(get(i+1, j, k).t == SOLID){
-				sumuk.x = 0;
-			}
-			if(get(i, j+1, k).t == SOLID){
-				sumuk.y = 0;
-			}
-			if(get(i, j, k+1).t == SOLID){
-				sumuk.z = 0;
-			}
-			a[l].u = sumuk;
-		
+void TriVec<T>::interpU() {
+	for (int l = 0; l < size; ++l) {
+		a[l].sumuk.x /= (a[l].sumk.x + 0.0000000000000000001);
+		a[l].sumuk.y /= (a[l].sumk.y + 0.0000000000000000001);
+		a[l].sumuk.z /= (a[l].sumk.z + 0.0000000000000000001);
+		a[l].u = a[l].sumuk;
+		a[l].sumuk = Vec3<T>();
+		a[l].sumk = Vec3<T>();
+		int k = l / (x*y), j = (l % (x*y)) / x, i = (l % (x*y)) % x;
+		if (get(i + 1, j, k).t == SOLID) {
+			a[l].u.x = 0;
+		}
+		if (get(i, j + 1, k).t == SOLID) {
+			a[l].u.y = 0;
+		}
+		if (get(i, j, k + 1).t == SOLID) {
+			a[l].u.z = 0;
 		}
 		a[l].uOld = a[l].u;
 	}
 }
+
+//template <typename T>
+//void TriVec<T>::interpU(){	//interpolate from particle velocities to grid
+//	for(int l = 0; l < size; ++l){
+//		if(a[l].t != SOLID){
+//			int k = l/(x*y), j = (l%(x*y))/x, i = (l%(x*y))%x;
+//			T offset = dx/2;
+//			T t, x = i*dx + offset, y = j*dx + offset, z = k*dx + offset;
+//			Vec3<T> sumk, sumuk, curPosx(x+offset, y, z), curPosy(x, y+offset, z), curPosz(x, y, z+offset);
+//			for(int p = 0; p < a[l].numParticles; p++){
+//				a[l].particles[p].vOld = a[l].particles[p].v;
+//			}
+//			for(int ioff = -1; ioff < 2; ioff++){ //loop on x-1, x, x+1 cells
+//				for(int joff = -1; joff < 2; joff++){	//loop on y-1, y, and y+1 cells
+//					for(int koff = -1; koff < 2; koff++){	//loop on z-1, z, and z+1 cells
+//							for(int p = 0; p < get(i+ioff, j+joff, k+koff).numParticles; p++){	//for each particle in cell
+//								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosx);
+//								sumk.x += t;
+//								sumuk.x += get(i+ioff, j+joff, k+koff).particles[p].v.x*t;
+//								
+//								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosy);
+//								sumk.y += t;
+//								sumuk.y += get(i+ioff, j+joff, k+koff).particles[p].v.y*t;
+//
+//								t = kWeight(get(i+ioff, j+joff, k+koff).particles[p].p - curPosz);
+//								sumk.z += t;
+//								sumuk.z += get(i+ioff, j+joff, k+koff).particles[p].v.z*t;
+//								// printf("%d %d %d | %f %f %f\n", ioff, joff, koff, p.v.x, p.v.y, p.v.z);
+//							}
+//					}
+//				}
+//			}
+//			sumuk.x /= (sumk.x + 0.0000000000000001);
+//			sumuk.y /= (sumk.y + 0.0000000000000001);
+//			sumuk.z /= (sumk.z + 0.0000000000000001);
+//			// printf("%d | %f %f %f\n", l, sumuk.x, sumuk.y, sumuk.z);
+//			if(get(i+1, j, k).t == SOLID){
+//				sumuk.x = 0;
+//			}
+//			if(get(i, j+1, k).t == SOLID){
+//				sumuk.y = 0;
+//			}
+//			if(get(i, j, k+1).t == SOLID){
+//				sumuk.z = 0;
+//			}
+//			a[l].u = sumuk;
+//		
+//		}
+//		a[l].uOld = a[l].u;
+//	}
+//}
 
 template <typename T>
 T linterp(T a, T p0, T p1){
@@ -217,54 +240,8 @@ void TriVec<T>::interpUtoP(Particle<T>& in){		//interpolate surrounding grid vel
 	}
 	newU.z = trilinterp((in.p.x - (tx*dx + dx/2))/dx, (in.p.y - (ty*dx + dx/2))/dx, (in.p.z - tz*dx)/dx, get(tx, ty, tz-1).u.z, get(tx+1, ty, tz-1).u.z, get(tx, ty+1, tz-1).u.z, get(tx+1, ty+1, tz-1).u.z, get(tx, ty, tz).u.z, get(tx+1, ty, tz).u.z, get(tx, ty+1, tz).u.z, get(tx+1, ty+1, tz).u.z);
 	oldU.z = trilinterp((in.p.x - (tx*dx + dx/2))/dx, (in.p.y - (ty*dx + dx/2))/dx, (in.p.z - tz*dx)/dx, get(tx, ty, tz-1).uOld.z, get(tx+1, ty, tz-1).uOld.z, get(tx, ty+1, tz-1).uOld.z, get(tx+1, ty+1, tz-1).uOld.z, get(tx, ty, tz).uOld.z, get(tx+1, ty, tz).uOld.z, get(tx, ty+1, tz).uOld.z, get(tx+1, ty+1, tz).uOld.z);
-	
-	// tx = in.p.x/dx, ty = in.p.y/dx, tz = in.p.z/dx;
 
-	// printf("old %d %d %d: %f %f %f\n", tx, ty, tz, in.v.x, in.v.y, in.v.z);
-	// printf("flip %f %f %f | old %f %f %f | new %f %f %f\n", in.vOld.x + (newU.x - oldU.x), in.vOld.y + (newU.y - oldU.y), in.vOld.z + (newU.z - oldU.z), oldU.x, oldU.y, oldU.z, newU.x, newU.y, newU.z);
 	in.v = (1-ALPHA)*newU + ALPHA*(in.v + (newU - oldU));
-	
-	// if(in.v.z == 0){
-	// 	tx = in.p.x/dx, ty = in.p.y/dx, tz = in.p.z/dx;
-	// 		if(in.p.y - ty*dx < dx/2){								//x component of velocity is stored on upper x bound and halfway point in y and z, need to adjust whether y and z are from y/z and y+1/z+1 or y-1/z-1 and y/z for trilin interp
-	// 		--ty;
-	// 	}
-	// 	if(in.p.z - tz*dx < dx/2){
-	// 		--tz;
-	// 	}
-	// 	// printf("%d %d %d | ", tx, ty, tz);
-	// 	tx = in.p.x/dx, ty = in.p.y/dx, tz = in.p.z/dx;
-	// 	if(in.p.x - tx*dx < dx/2){
-	// 		--tx;
-	// 	}
-	// 	if(in.p.z - tz*dx < dx/2){
-	// 		--tz;
-	// 	}
-	// 	// printf("%d %d %d | ", tx, ty, tz);
-	// 	tx = in.p.x/dx, ty = in.p.y/dx, tz = in.p.z/dx;
-	// 	if(in.p.x - tx*dx < dx/2){
-	// 		--tx;
-	// 	}
-	// 	if(in.p.y - ty*dx < dx/2){
-	// 		--ty;
-	// 	}
-	// 	// printf("%d %d %d\n", tx, ty, tz);
-		
-	// }
-
-	// printf("new %d %d %d: %f %f %f\n", tx, ty, tz, in.v.x, in.v.y, in.v.z);
-}
-
-template <typename T>
-void TriVec<T>::applyU(){											//apply grid U to particles
-	int offset = 1;											//for each fluid voxel, run interpUtoP for each particle inside
-	for(int l = 0; l < size; l+=offset){
-		if(a[l].t == FLUID){			
-			for(int p = 0; p < a[l].numParticles; p++){
-				interpUtoP(a[l].particles[p]);
-			}
-		}
-	}
 }
 
 template <typename T>
@@ -292,6 +269,7 @@ template <typename T>
 void TriVec<T>::updateU(){		//update U of fluid cells with pressure difference between it and it's positive neighbour (u,v,w on positive face of voxel)
 	int offset = 1;
 	T scale = dt / (dx*density);
+#pragma omp parallel for
 	for(int i = 0; i < size; i += offset){
 		if(a[i].t != SOLID){
 		//if(a[i].t == FLUID){
@@ -320,62 +298,6 @@ void TriVec<T>::updateU(){		//update U of fluid cells with pressure difference b
 }
 
 template <typename T>
-void TriVec<T>::advectParticles(){													//advect particles!
-	int offset = 1;
-	for(int i = 0; i < size; i += offset){									//loop through each block, should change this to search for fluid so each thread hits at least one fluid
-		if(a[i].t == FLUID){
-			for(int p = 0; p < a[i].numParticles; p++){															//for each particle in fluid voxel
-				// a[i].particles[p].p += a[i].particles[p].v * dt;												//update position by dt*v
-
-				//Bridson's Interpretation of Ralston's advection:
-				Particle<T> k2 = a[i].particles[p], k3;
-				k2.p += k2.v*(dt/2.0);
-				interpUtoP(k2);
-				k3 = k2;
-				k3.p += k3.v*dt*(3.0/4.0);
-				interpUtoP(k3);
-				a[i].particles[p].p += a[i].particles[p].v*dt*(2.0/9.0) + k2.v*dt*(3.0/9.0) + k3.v*dt*(4.0/9.0);
-			}
-		}
-	}
-														//after updating all positions, search for particles switching voxels
-	for(int i = 0; i < size; i++){
-		if (a[i].t == FLUID) {
-			int tz = i / (x*y), ty = (i % (x*y)) / x, tx = (i % (x*y)) % x;											//get xyz of voxel
-			for (int p = 0; p < a[i].numParticles; p++) {														//for all particles in this voxel
-				if ((int)floor(a[i].particles[p].p.x / dx) != tx || (int)floor(a[i].particles[p].p.y / dx) != ty || (int)floor(a[i].particles[p].p.z / dx) != tz) {	//if particle is outside of this voxel
-					int nx = floor(a[i].particles[p].p.x / dx), ny = floor(a[i].particles[p].p.y / dx), nz = floor(a[i].particles[p].p.z / dx);	//get voxel xyz of where particle should be
-					if (get(nx, ny, nz).t == SOLID) {															//if this voxel is solid, reverse particle direction (need to implement LSG to project it out)
-						// a[i].particles[p].p = a[i].particles[p].p - dt*a[i].particles[p].v;
-						reinsertToFluid(a[i].particles[p]);
-						--a[i].numParticles;
-						for (int l = p; l < a[i].numParticles; l++) {
-							a[i].particles[l] = a[i].particles[l + 1];
-						}
-						a[i].particles.pop_back();
-					}
-					else {
-						if (get(nx, ny, nz).t == EMPTY)													//if voxel is empty make it a fluid
-							get(nx, ny, nz).t = FLUID;
-						get(nx, ny, nz).particles.push_back(a[i].particles[p]);
-						++get(nx, ny, nz).numParticles;
-
-						--a[i].numParticles;																//if there isn't space, still remove the particle from this voxel
-						for (int l = p; l < a[i].numParticles; l++) {
-							a[i].particles[l] = a[i].particles[l + 1];										//and shift the remaining particles back in the "stack"
-						}
-						a[i].particles.pop_back();
-					}
-				}
-			}
-
-			if (a[i].numParticles == 0)																		//if current voxel has no particles (must have been a fluid at start) then set voxel to empty
-				a[i].t = EMPTY;
-		}
-	}			
-}
-
-template <typename T>
 void TriVec<T>::findPureFluids(){
 	for(int i = 0; i < size; ++i){
 		if(a[i].t == FLUID){
@@ -399,12 +321,10 @@ template <typename T>
 void TriVec<T>::reinsertToFluid(Particle<T>& in){
 	int i = pureFluidList[dist(gen)*pureFluidList.size()];
 	int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
-	in.p.x = tx+dist(gen)*dx;
-	in.p.y = ty+dist(gen)*dx;
-	in.p.z = tz+dist(gen)*dx;
-	interpUtoP(in);	
-	a[i].particles.push_back(in);
-	++a[i].numParticles;
+	in.p.x = tx*dx+dist(gen)*dx;
+	in.p.y = ty*dx+dist(gen)*dx;
+	in.p.z = tz*dx+dist(gen)*dx;
+	interpUtoP(in);
 }
 
 template <typename T>
@@ -414,6 +334,7 @@ Vec3<T> TriVec<T>::negA(int x, int y, int z){
 
 template <typename T>
 void TriVec<T>::singleThreadGS(){	//domain decomp needed for larger than 10x10x10 grid
+#pragma omp parallel for
 	for(int i = 0; i < size; i++){
 		if(a[i].t == FLUID){
 			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
@@ -443,16 +364,12 @@ void TriVec<T>::calcResidualGS(){
 
 template <typename T>
 void TriVec<T>::multiThreadJacobi(){
-	// long long numFluid = 0, index = threadIdx.x + blockDim.x*blockIdx.x;
 	int offset = 1;
 	for(long long i = 0; i < size; i += offset){									//each thread searches for a fluid cell so all run into a fluid unless there are more threads than fluid cells
 		if(a[i].t == FLUID){
-			// ++numFluid;
-			// if(numFluid % index == 0){
 				int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
 				Vec3<T> t = negA(tx, ty, tz);
 				a[i].p = (a[i].divU - (a[i].aX*get(tx+1, ty, tz).pold + a[i].aY*get(tx, ty+1, tz).pold + a[i].aZ*get(tx, ty, tz+1).pold + t.x*get(tx-1, ty, tz).pold + t.y*get(tx, ty-1, tz).pold + t.z*get(tx, ty, tz-1).pold))/(a[i].aDiag+0.000000000000001);
-				// a[i].p = 0;
 		}
 	}
 }
@@ -460,6 +377,7 @@ void TriVec<T>::multiThreadJacobi(){
 template <typename T>
 void TriVec<T>::maxResidual(){
 	maxRes = 0;
+
 	for(int i = 0; i < size; i++){
 		if(abs(this->a[i].res) > maxRes){
 			maxRes = abs(this->a[i].res);
@@ -468,30 +386,21 @@ void TriVec<T>::maxResidual(){
 }
 
 template <typename T>
-void TriVec<T>::maxU(){
-	T curMax = 0;
-	for(int i = 0; i < size; i++){
-		if(a[i].t == FLUID){
-			for(int p = 0; p < a[i].numParticles; p++){
-				if(abs(a[i].particles[p].v.x) > curMax){
-					curMax = abs(a[i].particles[p].v.x);
-				}
-				if(abs(a[i].particles[p].v.y) > curMax){
-					curMax = abs(a[i].particles[p].v.y);
-				}
-				if(abs(a[i].particles[p].v.z) > curMax){
-					curMax = abs(a[i].particles[p].v.z);
-				}
-			}
-		}
+void TriVec<T>::copyFrom(TriVec<T>& in){
+	int offset = 1;
+#pragma omp parallel for
+	for(int i = 0; i < in.size; i+=offset){
+		a[i] = in.a[i];
 	}
-	mU = curMax;
 }
 
 template <typename T>
-void TriVec<T>::copyFrom(TriVec<T>& in){
-	int offset = 1;
-	for(int i = 0; i < in.size; i+=offset){
-		a[i] = in.a[i];
+void TriVec<T>::resetFluids() {
+#pragma omp parallel for
+	for (int i = 0; i < size; ++i) {
+		a[i].u = Vec3<T>();
+		a[i].uOld = Vec3<T>();
+		if (a[i].t == FLUID)
+			a[i].t = EMPTY;
 	}
 }

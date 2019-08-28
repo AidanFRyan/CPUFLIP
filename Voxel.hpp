@@ -5,7 +5,7 @@ Voxel<T>::Voxel(){
 	t = EMPTY;
 	f.z = -9.8f;
 	invalid = false;
-	numParticles = 0;
+	//numParticles = 0;
 	aDiag = 0;
 	aX = 0;
 	aY = 0;
@@ -17,7 +17,7 @@ Voxel<T>::Voxel(){
 	z = 0;
 	s = 0;
 	pold = 0;
-	particles.reserve(24);
+	//particles.reserve(24);
 }
 
 template <typename T>
@@ -38,11 +38,11 @@ Voxel<T>::Voxel(const Voxel<T>& in) : Voxel(){
 	// t = EMPTY;
 	// invalid = false;
 	t = in.t;
-	numParticles = in.numParticles;
-	for(int i = 0; i < in.numParticles; i++){
-		// particles[i] = in.particles[i];
-		particles.push_back(in.particles[i]);
-	}
+	//numParticles = in.numParticles;
+	//for(int i = 0; i < in.numParticles; i++){
+	//	// particles[i] = in.particles[i];
+	//	particles.push_back(in.particles[i]);
+	//}
 }
 
 template <typename T>
@@ -50,13 +50,13 @@ const Voxel<T>& Voxel<T>::operator=(const Voxel<T>& in){
 	u = in.u;
 	f = in.f;
 	p = in.p;
-	numParticles = in.numParticles;
+	//numParticles = in.numParticles;
 	invalid = in.invalid;
 	t = in.t;
-	for(int i = 0; i < in.numParticles; i++){
-		// particles[i] = in.particles[i];
-		particles.push_back(in.particles[i]);
-	}
+	//for(int i = 0; i < in.numParticles; i++){
+	//	// particles[i] = in.particles[i];
+	//	particles.push_back(in.particles[i]);
+	//}
 	return *this;
 }
 

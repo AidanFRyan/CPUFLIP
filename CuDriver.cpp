@@ -1,8 +1,8 @@
 #include "CuSolver.h"
 #define FRAMES 360
-#define NUMCELLS 10
+#define NUMCELLS 40
 #define FPS 24
-#define DX 1
+#define DX 0.25
 using namespace Cu;
 
 int main() {

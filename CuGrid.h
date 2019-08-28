@@ -20,14 +20,21 @@ namespace Cu {
 		// bool copyFromDeviceAsync(CuGrid* d_grid, cudaStream_t& stream);
 		// bool allocateOnDevice();
 		// void removeDeviceCopies();
+		void applyU();
+		void interpU();
+		void advectParticles();
 		void initializeParticles();
 		void setTstep(double t);
 		void print();
+		void maxU();
 		void printParts(string filename);
 		const CuGrid& operator=(const CuGrid&);
+		void setFluidCells();
+		void reinsertOOBParticles();
 		TriVec<T> a;
 		unsigned long long x, y, z;
 		double dx, dt, density;
+		vector<Particle<T>> particles;
 		
 	private:
 		void nullifyHostTriVecs();

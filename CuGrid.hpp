@@ -52,11 +52,9 @@ template <typename T>
 void CuGrid<T>::printParts(string filename){
 	ofstream f;
 	f.open(filename);
-	for(int i = 0; i < a.size; i++){
-		// if(a.a[i].t == FLUID)
-			for(int p = 0; p < a.a[i].numParticles; p++){
-				f<<a.a[i].particles[p].p.x<<' '<<a.a[i].particles[p].p.y<<' '<<a.a[i].particles[p].p.z<<endl;
-			}
+	cout << particles.size() << endl;
+	for (int p = 0; p < particles.size(); p++) {
+		f << particles[p].p.x << ' ' << particles[p].p.y << ' ' << particles[p].p.z << endl;
 	}
 	f.close();
 }
@@ -71,14 +69,11 @@ CuGrid<T>::CuGrid(const CuGrid<T>& in){
 	this->density = in.density;
 
 	this->a = std::move(TriVec<T>(x, y, z, dx, dt, density));
-
-	// this->d_a = std::move(TriVec<T>(x, y, z, dx, dt, density, true));
 }
 
 template <typename T>
 const CuGrid<T>& CuGrid<T>::operator=(const CuGrid<T>& in){
 	a = in.a;
-	// d_a = in.d_a;
 	x = in.x;	
 	y = in.y;
 	z = in.z;
@@ -88,90 +83,8 @@ const CuGrid<T>& CuGrid<T>::operator=(const CuGrid<T>& in){
 	return *this;
 }
 
-// template <typename T>
-// CuGrid<T>* CuGrid<T>::toDeviceCopy() {
-// 	CuGrid<T> *d_temp, temp = *this;
-
-// 	cudaMemcpy(d_a.a, a.a, sizeof(Voxel<T>)*x*y*z, cudaMemcpyHostToDevice);
-
-// 	temp.a = d_a;
-
-// 	cudaMalloc((void**)&d_temp, sizeof(CuGrid<T>));	//need to cudaFree the return value
-// 	cudaMemcpy(d_temp, &temp, sizeof(CuGrid<T>), cudaMemcpyHostToDevice);
-
-// 	temp.nullifyDeviceTriVecs();
-// 	temp.nullifyHostTriVecs();
-	
-// 	return d_temp;
-// }
-
 template <typename T>
-CuGrid<T>::~CuGrid() {
-	// removeDeviceCopies();
-}
-
-// template <typename T>
-// bool CuGrid<T>::copyFromDevice(CuGrid<T>* d_grid) {
-// 	CuGrid<T>* grid = new CuGrid<T>;
-// 	cudaMemcpy(grid, d_grid, sizeof(CuGrid<T>), cudaMemcpyDeviceToHost);
-
-// 	if(grid->x != x || grid->y != y || grid->z != z){
-// 		delete grid;
-// 		return false;
-// 	}
-
-// 	cudaMemcpy(this->a.a, grid->a.a, sizeof(Voxel<T>)*x*y*z, cudaMemcpyDeviceToHost);
-
-// 	grid->nullifyHostTriVecs();
-
-// 	delete grid;
-// 	return true;
-// }
-
-// template <typename T>
-// bool CuGrid<T>::copyFromDeviceAsync(CuGrid<T>* d_grid, cudaStream_t& stream) {
-// 	CuGrid<T>* grid = new CuGrid<T>;
-// 	cudaMemcpyAsync(grid, d_grid, sizeof(CuGrid<T>), cudaMemcpyDeviceToHost, stream);
-
-// 	if(grid->x != x || grid->y != y || grid->z != z){
-// 		delete grid;
-// 		return false;
-// 	}
-
-// 	cudaMemcpyAsync(this->a.a, grid->a.a, sizeof(Voxel<T>)*x*y*z, cudaMemcpyDeviceToHost, stream);
-
-// 	grid->nullifyHostTriVecs();
-
-// 	delete grid;
-// 	return true;
-// }
-
-// template <typename T>
-// bool CuGrid<T>::allocateOnDevice() {
-// 	cudaDeviceSynchronize();
-
-// 	cudaMalloc((void**)&d_a.a, sizeof(Voxel<T>)*x*y*z);
-
-// 	cudaDeviceSynchronize();
-
-// 	return true;
-// }
-
-// template <typename T>
-// CuGrid<T>* CuGrid<T>::toDeviceEmpty() {
-// 	CuGrid<T> temp, *d_temp;
-// 	temp.a = d_a;
-// 	temp.x = x;
-// 	temp.y = y;
-// 	temp.z = z;
-
-// 	cudaMalloc((void**)&d_temp, sizeof(CuGrid<T>));
-// 	cudaMemcpy(d_temp, &temp, sizeof(CuGrid<T>), cudaMemcpyHostToDevice);
-
-// 	temp.nullifyHostTriVecs();
-
-// 	return d_temp;
-// }
+CuGrid<T>::~CuGrid() {}
 
 template <typename T>
 void CuGrid<T>::print(){
@@ -180,11 +93,6 @@ void CuGrid<T>::print(){
 		for(int j = y-1; j >= 0; j--){
 			for(int i = x-1; i >= 0; i--){
 				Voxel<T> *t = &a.get(i, j, k);
-				// if(t->t == FLUID)
-				// 	printf(" F ");
-				// else if(t->t == SOLID)
-				// 	printf(" S ");
-				// else printf("   ");
 				printf("| %f |", t->p);
 			}
 			printf("\n");
@@ -198,13 +106,101 @@ void CuGrid<T>::initializeParticles(){
 	for(int i = 0; i < x*y*z; i++){
 		if(a.a[i].t == FLUID){
 			int tz = i/(x*y), ty = (i%(x*y))/x, tx = (i%(x*y))%x;
-			a.a[i].numParticles = 8;
+			//a.a[i].numParticles = 8;
 			for(int j = 0; j < 8; j++){
-				a.a[i].particles[j].p.x = dx*tx + dx*(double)rand()/RAND_MAX;
+				/*a.a[i].particles[j].p.x = dx*tx + dx*(double)rand()/RAND_MAX;
 				a.a[i].particles[j].p.y = dx*ty + dx*(double)rand()/RAND_MAX;
-				a.a[i].particles[j].p.z = dx*tz + dx*(double)rand()/RAND_MAX;
-				// printf("%d %d\n", i, j);
+				a.a[i].particles[j].p.z = dx*tz + dx*(double)rand()/RAND_MAX;*/
+				Particle<T> p;
+				p.p.x = dx * tx + dx * a.dist(a.gen);
+				p.p.y = dx * ty + dx * a.dist(a.gen);
+				p.p.z = dx * tz + dx * a.dist(a.gen);
+				this->particles.push_back(p);
 			}
+		}
+	}
+}
+
+template <typename T>
+void CuGrid<T>::applyU() {
+	#pragma omp parallel for
+	for (int p = 0; p < particles.size(); p++) {
+		a.interpUtoP(particles[p]);
+	}
+}
+
+template <typename T>
+void CuGrid<T>::interpU() {	//interpolate from particle velocities to grid
+	#pragma omp parallel for
+	for (int p = 0; p < particles.size(); ++p) {
+		int i = floor(particles[p].p.x / dx), j = floor(particles[p].p.y / dx), k = floor(particles[p].p.z / dx);
+		T t;
+		for (int ioff = -1; ioff < 2; ++ioff) {
+			for (int joff = -1; joff < 2; ++joff) {
+				for (int koff = -1; koff < 2; ++koff) {
+					t = a.kWeight(particles[p].p - Vec3<T>((i + ioff + 1)*dx, (j + joff + 0.5)*dx, (k + koff + 0.5)*dx));
+					a.get(i + ioff, j + joff, k + koff).sumk.x += t;
+					a.get(i + ioff, j + joff, k + koff).sumuk.x += particles[p].v.x*t;
+
+					t = a.kWeight(particles[p].p - Vec3<T>((i + ioff + 0.5)*dx, (j + joff + 1)*dx, (k + koff + 0.5)*dx));
+					a.get(i + ioff, j + joff, k + koff).sumk.y += t;
+					a.get(i + ioff, j + joff, k + koff).sumuk.y += particles[p].v.y*t;
+
+					t = a.kWeight(particles[p].p - Vec3<T>((i + ioff + 0.5)*dx, (j + joff + 0.5)*dx, (k + koff + 1)*dx));
+					a.get(i + ioff, j + joff, k + koff).sumk.z += t;
+					a.get(i + ioff, j + joff, k + koff).sumuk.z += particles[p].v.z*t;
+				}
+			}
+		}
+	}
+}
+
+template <typename T>
+void CuGrid<T>::advectParticles(){
+	#pragma omp parallel for
+	for (int p = 0; p < particles.size(); ++p) {
+		Particle<T> k2 = particles[p], k3;
+		k2.p += k2.v*(dt / 2.0);
+		a.interpUtoP(k2);
+		k3 = k2;
+		k3.p += k3.v*dt*(3.0 / 4.0);
+		a.interpUtoP(k3);
+		particles[p].p += particles[p].v*dt*(2.0 / 9.0) + k2.v*dt*(3.0 / 9.0) + k3.v*dt*(4.0 / 9.0);
+		//int i = floor(particles[p].p.x / dx), j = floor(particles[p].p.y / dx), k = floor(particles[p].p.z / dx);
+	}	
+}
+
+template <typename T>
+void CuGrid<T>::maxU() {
+	T max = 0;
+	for (int p = 0; p < particles.size(); ++p) {
+		if (abs(particles[p].v.x) > max)
+			max = abs(particles[p].v.x);
+		if (abs(particles[p].v.y) > max)
+			max = abs(particles[p].v.y);
+		if (abs(particles[p].v.z) > max)
+			max = abs(particles[p].v.z);
+	}
+}
+
+template <typename T>
+void CuGrid<T>::setFluidCells() {
+	#pragma omp parallel for
+	for (int p = 0; p < particles.size(); ++p) {
+		int i = floor(particles[p].p.x / dx), j = floor(particles[p].p.y / dx), k = floor(particles[p].p.z / dx);
+		if (a.get(i, j, k).t == EMPTY) {
+			a.get(i, j, k).t = FLUID;
+		}
+	}
+}
+
+template <typename T>
+void CuGrid<T>::reinsertOOBParticles() {
+	#pragma omp parallel for
+	for (int p = 0; p < particles.size(); ++p) {
+		int i = floor(particles[p].p.x / dx), j = floor(particles[p].p.y / dx), k = floor(particles[p].p.z / dx);
+		if (a.get(i, j, k).t == SOLID) {
+			a.reinsertToFluid(particles[p]);
 		}
 	}
 }

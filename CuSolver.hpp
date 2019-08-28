@@ -37,7 +37,7 @@ void CuSolver<T>::testInit(){
 			for(int i = 0; i < x; i++){
 				Voxel<T>* t = &sourceGrid->a.get(i, j, k);
 				// if(i == 0 || i == x-1 || j == 0 || j == y-1 || k == 0 || k == z-1){
-				if (i < 5 * x / 8 && i > 3 * x / 8){// && j < 5 * y / 8 && j > 3 * y / 8){
+				if (i < 5 * x / 8 && i > 3 * x / 8 && k < 5 * z / 8 && k > 3*z/8){// && j < 5 * y / 8 && j > 3 * y / 8){
 					t->t = SOLID;
 				}
 				// // else if(i < 5*x/8 && i > 3*x/8 && j < 5*y/8 && j > 3*y/8)
@@ -62,8 +62,9 @@ bool CuSolver<T>::initialValues(CuGrid<T>* initial) {
 
 template <typename T>
 bool CuSolver<T>::advect() {
-	sourceGrid->initializeParticles();
+	//sourceGrid->initializeParticles();
 	targetGrid->a.copyFrom(sourceGrid->a);
+	targetGrid->initializeParticles();
 	this->printParts(0);
 	double delT = sourceGrid->dt;
 	for(int c = 1; c < frames; c++){
@@ -81,7 +82,7 @@ bool CuSolver<T>::advect() {
                 targetGrid->a.a[i].uOld = Vec3<T>();
 				targetGrid->a.pureFluidList.clear();
 			}
-			targetGrid->a.maxU();
+			targetGrid->maxU();
 			targetGrid->a.dx = sourceGrid->dx;              //copy dx (not copied in voxel copy copyFrom)
 			// targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = sourceGrid->dx / (sourceGrid->a.mU + sqrt(2*9.8*targetGrid->dx)); //set dt for subframe
 			targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = delT/4.0;
@@ -89,6 +90,7 @@ bool CuSolver<T>::advect() {
 				targetGrid->a.dt = targetGrid->dt = sourceGrid->dt = delT-tElapsed;
 			targetGrid->a.density = sourceGrid->density;    //copy density (not copied in copyFrom)
 			targetGrid->a.interpU();
+			#pragma omp parallel for
 			for(int i = 0; i < x*y*z; i++){  //this loop needs to be turned into a function of TriVec, calculate aDiag, aX, aY, aZ for each fluid cell
 				// targetGrid->a.a[i].applyBodyForces(targetGrid->dt);
 				if(targetGrid->a.a[i].t == FLUID){                                          //only calc divU and apply body forces on cells which are fluid
@@ -155,10 +157,14 @@ bool CuSolver<T>::advect() {
 			// printf("Filling gaps...\n");
 			// targetGrid->a.fillGaps();                                           //update voxel U with pressure term
 			printf("apply U\n");
-			targetGrid->a.applyU();                                             //interp particle U from voxel U
+			targetGrid->applyU();                                             //interp particle U from voxel U
 			printf("advect particles\n");
+			//targetGrid->a.findPureFluids();
+			targetGrid->advectParticles();                                   //move particles based on dt and velocity
+			targetGrid->a.resetFluids();
+			targetGrid->setFluidCells();
 			targetGrid->a.findPureFluids();
-			targetGrid->a.advectParticles();                                   //move particles based on dt and velocity
+			targetGrid->reinsertOOBParticles();
 			// targetGrid->a.fillGaps();
 			tElapsed += targetGrid->dt;       
 		}

@@ -37,18 +37,19 @@ namespace Cu {
 		void updateS(double b);
 		void updateZ();
 		void updateU();
-		void applyU();
+		//void applyU();
 		void advectParticles();
 		void singleThreadGS();
 		void calcResidualGS();
 		Vec3<T> negA(int x, int y, int z);
-		void maxU();
+		//void maxU();
 		void copyFrom(TriVec<T>& in);
 		void fillGaps();
 		void interpUtoP(Particle<T>& in);
 		void multiThreadJacobi();
 		void findPureFluids();
 		void reinsertToFluid(Particle<T>& in);
+		void resetFluids();
 
 		std::default_random_engine gen;
 		std::uniform_real_distribution<double> dist;
